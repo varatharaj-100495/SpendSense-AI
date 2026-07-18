@@ -12,7 +12,7 @@ class GeminiProvider:
         self.client = genai.Client(
             api_key=os.getenv("GEMINI_API_KEY")
         )
-        self.model = os.getenv("GEMINI_MODEL")
+        self.model = "gemini-3.5-flash"
 
     def generate(self, prompt: str):
 
