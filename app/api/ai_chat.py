@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
@@ -10,6 +10,7 @@ from app.models.chat_message import ChatMessage
 from app.schemas.chat_schema import ChatRequest
 
 from app.ai.services.ai_chat_service import AIChatService
+
 
 router = APIRouter(
     prefix="/ai",
@@ -23,26 +24,45 @@ def chat_with_ai(
     db: Session = Depends(get_db)
 ):
 
-    expenses = (
-        db.query(Expense)
-        .order_by(Expense.created_at.desc())
-        .limit(20)
-        .all()
-    )
+    try:
+
+        expenses = (
+            db.query(Expense)
+            .order_by(
+                Expense.created_at.desc()
+            )
+            .limit(20)
+            .all()
+        )
 
 
-    budget = db.query(Budget).first()
+        budget = db.query(Budget).first()
 
 
-    ai_service = AIChatService()
+        ai_service = AIChatService()
 
 
-    return ai_service.chat(
-    db=db,
-    message=request.message,
-    expenses=expenses,
-    budget=budget
-)
+        response = ai_service.chat(
+            db=db,
+            message=request.message,
+            expenses=expenses,
+            budget=budget
+        )
+
+
+        return response
+
+
+    except Exception as e:
+
+        print("AI Chat Error:", e)
+
+        raise HTTPException(
+            status_code=500,
+            detail="AI chat service failed"
+        )
+
+
 
 @router.get("/history")
 def get_chat_history(

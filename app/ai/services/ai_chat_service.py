@@ -1,7 +1,5 @@
 from app.ai.prompts.chat_prompt import build_chat_prompt
 from app.ai.providers.gemini_provider import GeminiProvider
-
-
 from app.models.chat_message import ChatMessage
 
 
@@ -25,10 +23,12 @@ class AIChatService:
             budget
         )
 
+        response = self.provider.generate(prompt)
 
-        response = self.provider.generate(
-            prompt
-        )
+
+        # Handle Gemini errors
+        if isinstance(response, dict) and "error" in response:
+            return response
 
 
         chat = ChatMessage(
@@ -45,5 +45,6 @@ class AIChatService:
         return {
             "id": chat.id,
             "answer": response,
-            "created_at": chat.created_at
+            "created_at": chat.created_at,
+            "message": response
         }
